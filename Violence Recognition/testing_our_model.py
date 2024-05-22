@@ -2,6 +2,16 @@ import gradio as gr
 import cv2
 import numpy as np
 
+from keras.models import load_model
+
+# Load the model outside the function to avoid reloading it every time the function is called
+try:
+    LRCN_model = load_model('C:/Users/aymer/Downloads/LRCN_model___Date_Time_2024_04_14__11_19_30___Loss_0.5454413294792175___Accuracy_0.7666666507720947.h5')
+except Exception as e:
+    print("Failed to load model:", str(e))
+    exit(1)
+
+
 def predict_single_action(video):
     '''
     This function will perform single action recognition prediction on a video using the LRCN model.
@@ -12,7 +22,7 @@ def predict_single_action(video):
     CLASSES_LIST = ["Voilence", "NonViolence"] 
 
     # Initialize the VideoCapture object to read from the video file.
-    video_reader = cv2.VideoCapture(video.name)
+    video_reader = cv2.VideoCapture(video)
 
     # Get the width and height of the video.
     original_video_width = int(video_reader.get(cv2.CAP_PROP_FRAME_WIDTH))
@@ -53,7 +63,6 @@ def predict_single_action(video):
         frames_list.append(normalized_frame)
 
     # Passing the pre-processed frames to the model and get the predicted probabilities.
-    LRCN_model = load_model('C:/Users/aymer/Downloads/LRCN_model___Date_Time_2024_04_14__11_19_30___Loss_0.5454413294792175___Accuracy_0.7666666507720947.h5')
     predicted_labels_probabilities = LRCN_model.predict(np.expand_dims(frames_list, axis = 0))[0]
 
     # Get the index of class with highest probability.
@@ -66,7 +75,7 @@ def predict_single_action(video):
     print(f'Action Predicted: {predicted_class_name}\nConfidence: {predicted_labels_probabilities[predicted_label]}')
         
     # Release the VideoCapture object. 
-    #video_reader.release()
+    video_reader.release()
 
     return f'Action Predicted: {predicted_class_name}\nConfidence: {predicted_labels_probabilities[predicted_label]}'
 
